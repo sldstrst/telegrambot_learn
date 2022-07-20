@@ -20,7 +20,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class MyBot extends TelegramLongPollingBot {
-    private static final String TOKEN = "5433490854:AAF2ejn-BenAPAUMkqT5gpp6U4xeSdEs0_U";
+    private static final String TOKEN = ".";
     private static final String USERNAME = "FirstBotFromMeBot";
 
     public MyBot(DefaultBotOptions options){
