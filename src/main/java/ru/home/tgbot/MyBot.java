@@ -1,12 +1,11 @@
 package ru.home.tgbot;
 
-import org.telegram.telegrambots.bots.DefaultBotOptions;
+//import org.telegram.telegrambots.bots.DefaultBotOptions;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.ActionType;
 import org.telegram.telegrambots.meta.api.methods.send.SendChatAction;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
-import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
@@ -23,9 +22,9 @@ public class MyBot extends TelegramLongPollingBot {
     private static final String TOKEN = ".";
     private static final String USERNAME = "FirstBotFromMeBot";
 
-    public MyBot(DefaultBotOptions options){
-        super (options);
-    }
+//    public MyBot(DefaultBotOptions options){
+//        super (options);
+//    }
 
     public MyBot(){
     }
@@ -97,6 +96,22 @@ public class MyBot extends TelegramLongPollingBot {
     }
 
 
+    private void sendMessageFrom(String chatId, String textToSend){
+        SendMessage message = new SendMessage();
+        sendMessageFrom(chatId, textToSend, message);
+    }
+
+    private void sendMessageFrom(String chatId, String textToSend, SendMessage message){
+        message.setChatId(chatId);
+        message.setText(textToSend);
+
+        try{
+            execute(message);
+        } catch (TelegramApiException e){
+            e.printStackTrace();
+        }
+    }
+
 
 
     public void onUpdateReceived(Update update){
@@ -109,27 +124,13 @@ public class MyBot extends TelegramLongPollingBot {
 
             switch (messageText){
                 case "/start":
-                    message.setText("Привет!)\n" +
+                    sendMessageFrom(message.getChatId(), "Привет!)\n" +
                             "Просто кликай на интересующие кнопки = )");
                     break;
             }
-
-            try {
-                execute(message);
-            } catch (TelegramApiException e) {
-                e.printStackTrace();
-            }
-
             //повторение меню
             message = start(message);
-            message.setText("Меню");
-            try {
-                execute(message);
-            } catch (TelegramApiException e) {
-                e.printStackTrace();
-            }
-
-
+            sendMessageFrom(message.getChatId(), "MENU", message);
 
         } else if (update.hasCallbackQuery()) {
             CallbackQuery callbackQuery = update.getCallbackQuery();

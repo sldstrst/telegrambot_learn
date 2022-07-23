@@ -13,6 +13,24 @@
         <maven.compiler.target>11</maven.compiler.target>
     </properties>
 
+    <build>
+    <plugins>
+        <plugin>
+            <groupId>com.heroku.sdk</groupId>
+            <artifactId>heroku-maven-plugin</artifactId>
+            <version>3.0.3</version>
+            <configuration>
+                <appName>mybotsldstrst</appName>
+                <processTypes>
+                    <worker>
+                        java $JAVA_OPTS -cp target/classes:target/dependency/* ru.home.tgbot
+                    </worker>
+                </processTypes>
+            </configuration>
+        </plugin>
+    </plugins>
+    </build>
+
     <dependencies>
         <dependency>
             <groupId>org.telegram</groupId>
@@ -20,17 +38,6 @@
             <version>6.0.1</version>
             <scope>compile</scope>
         </dependency>
-
-<!--        &lt;!&ndash; https://mvnrepository.com/artifact/org.projectlombok/lombok &ndash;&gt;-->
-<!--        <dependency>-->
-<!--            <groupId>org.projectlombok</groupId>-->
-<!--            <artifactId>lombok</artifactId>-->
-<!--            <version>1.18.24</version>-->
-<!--            <scope>provided</scope>-->
-<!--        </dependency>-->
-
-
-
 
     </dependencies>
 
