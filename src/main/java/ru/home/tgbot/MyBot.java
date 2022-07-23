@@ -1,6 +1,7 @@
 package ru.home.tgbot;
 
 //import org.telegram.telegrambots.bots.DefaultBotOptions;
+import org.telegram.telegrambots.bots.DefaultBotOptions;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.ActionType;
 import org.telegram.telegrambots.meta.api.methods.send.SendChatAction;
@@ -22,9 +23,9 @@ public class MyBot extends TelegramLongPollingBot {
     private static final String TOKEN = ".";
     private static final String USERNAME = "FirstBotFromMeBot";
 
-//    public MyBot(DefaultBotOptions options){
-//        super (options);
-//    }
+    public MyBot(DefaultBotOptions options){
+        super (options);
+    }
 
     public MyBot(){
     }
@@ -142,17 +143,17 @@ public class MyBot extends TelegramLongPollingBot {
             sendMessage.setChatId(chat_id);
 
             switch (data){
-                case "course": sendMessage.setText("Как устроен курс:\n" +
-                        "\n" +
+                case "course":
+                    sendMessageFrom(chat_id, "Как устроен курс:\n" +
                         "Теория записана в видео - можно смотреть в любое время, не онлайн стрим\n");
                     break;
-                case "reviews": sendMessage.setText("help!");
+                case "reviews": sendMessageFrom(chat_id,"Здесь будут наши отзывы!");
                     break;
                 case "location":
-                    sendMessage = start(sendMessage);
-                    sendMessage.setText("hi dude");
+                    sendMessageFrom(chat_id,"Здесь будет локация!");
                     break;
-                default: sendMessage.setText("default");
+                default: sendMessageFrom(chat_id,"Мы ну никак не можем распознать ваши слова..." + "\n" +
+                "Подумайте ещё раз и напишите что-то другое...");
                 break;
             }
 
