@@ -1,6 +1,5 @@
 package ru.home.tgbot;
 
-import org.telegram.telegrambots.bots.DefaultBotOptions;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.ActionType;
 import org.telegram.telegrambots.meta.api.methods.send.SendChatAction;
@@ -12,6 +11,13 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 public class MyBot extends TelegramLongPollingBot {
     private static final BotConfig botConfig = new BotConfig();
+    private static final String textStart = "Привет!)\nПросто кликай на интересующие кнопки = )";
+    private static final String textMenu = "Это меню (не как в ресторане)";
+    private static final String textCourse = "Здесь может быть представлена информация \nо курсе";
+    private static final String textReviews = "Отзывы как они есть";
+    private static final String textLocation = "Location";
+    private static final String textDefault = "Don't speak english? Very bad. F'uk up!";
+    private static final String textGeneralMenu = "Главное меню";
 
     public MyBot(){
         new BotConfig();
@@ -39,14 +45,13 @@ public class MyBot extends TelegramLongPollingBot {
 
             switch (messageText){
                 case "/start":
-                    sendMessageFrom(message.getChatId(), "Привет!)\n" +
-                            "Просто кликай на интересующие кнопки = )");
+                    sendMessageFrom(message.getChatId(), textStart);
                     break;
 
             }
             new InlineKeyboardGeneralMenu().getKeyboard(message);
             inlineKeyboardGeneralMenu.getKeyboard(message);
-            sendMessageFrom(message.getChatId(), "Меню!", message);
+            sendMessageFrom(message.getChatId(), textMenu, message);
 
         } else if (update.hasCallbackQuery()) {
             CallbackQuery callbackQuery = update.getCallbackQuery();
@@ -64,28 +69,23 @@ public class MyBot extends TelegramLongPollingBot {
 
             switch (data){
                 case "course":
-                    textContent = "Information\n" + "about\n" + "course\n";
+                    sendMessageFromCallback(chat_id, textCourse);
                     break;
                 case "reviews":
-                    textContent ="Reviews!";
                     replyMarkupSubMenu.getKeyboard(sendMessage);
-                    sendMessageFromCallback(chat_id, textContent, sendMessage);
-                    textContent = "";
+                    sendMessageFromCallback(chat_id, textReviews, sendMessage);
                     break;
                 case "/location":
-                    textContent = "Our location";
+                    sendMessageFromCallback(chat_id, textLocation);
                     sendLocationFromCallback(chat_id, sendLocation);
                     break;
                 default:
-                    textContent = "Don't speak english? Very bad. F'uk up!";
+                    sendMessageFromCallback(chat_id, textDefault);
                 break;
             }
 
-            if (textContent != ""){
-                sendMessageFromCallback(chat_id, textContent);
-            }
             inlineKeyboardGeneralMenu.getKeyboard(sendMessage);
-            sendMessageFrom(chat_id, "Главное меню", sendMessage);
+            sendMessageFrom(chat_id, textGeneralMenu, sendMessage);
 
         }
     }
