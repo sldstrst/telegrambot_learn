@@ -1,108 +1,106 @@
 package ru.home.tgbot;
 
-//import org.telegram.telegrambots.bots.DefaultBotOptions;
 import org.telegram.telegrambots.bots.DefaultBotOptions;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.ActionType;
 import org.telegram.telegrambots.meta.api.methods.send.SendChatAction;
+import org.telegram.telegrambots.meta.api.methods.send.SendLocation;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import org.telegram.telegrambots.meta.api.objects.Update;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardButton;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-
 public class MyBot extends TelegramLongPollingBot {
-    private static final String TOKEN = ".";
-    private static final String USERNAME = "FirstBotFromMeBot";
-
-    public MyBot(DefaultBotOptions options){
-        super (options);
-    }
+    private static final BotConfig botConfig = new BotConfig();
 
     public MyBot(){
+        new BotConfig();
     }
 
     @Override
     public String getBotUsername() {
-        return USERNAME;
+        return botConfig.appProps.getProperty("bot.username");
     }
 
     @Override
     public String getBotToken() {
-        return TOKEN;
+        return botConfig.appProps.getProperty("bot.token");
     }
 
-    public synchronized void setButtons(SendMessage sendMessage) {
-        // Создаем клавиуатуру
-        ReplyKeyboardMarkup replyKeyboardMarkup = new ReplyKeyboardMarkup();
-        sendMessage.setReplyMarkup(replyKeyboardMarkup);
-        replyKeyboardMarkup.setSelective(true);
-        replyKeyboardMarkup.setResizeKeyboard(true);
-        replyKeyboardMarkup.setOneTimeKeyboard(false);
+    public void onUpdateReceived(Update update){
 
-        // Создаем список строк клавиатуры
-        List<KeyboardRow> keyboard = new ArrayList<>();
+        if (update.hasMessage() && update.getMessage().hasText()) {
+            SendMessage message = new SendMessage();
+            message.setChatId(update.getMessage().getChatId().toString());
 
-        // Первая строчка клавиатуры
-        KeyboardRow keyboardFirstRow = new KeyboardRow();
-        // Добавляем кнопки в первую строчку клавиатуры
-        keyboardFirstRow.add(new KeyboardButton("Привет"));
+            InlineKeyboardGeneralMenu inlineKeyboardGeneralMenu = new InlineKeyboardGeneralMenu();
 
-        // Вторая строчка клавиатуры
-        KeyboardRow keyboardSecondRow = new KeyboardRow();
-        // Добавляем кнопки во вторую строчку клавиатуры
-        keyboardSecondRow.add(new KeyboardButton("Помощь"));
+            String messageText = update.getMessage().getText();
 
-        // Добавляем все строчки клавиатуры в список
-        keyboard.add(keyboardFirstRow);
-        keyboard.add(keyboardSecondRow);
-        // и устанваливаем этот список нашей клавиатуре
-        replyKeyboardMarkup.setKeyboard(keyboard);
+            switch (messageText){
+                case "/start":
+                    sendMessageFrom(message.getChatId(), "Привет!)\n" +
+                            "Просто кликай на интересующие кнопки = )");
+                    break;
+
+            }
+            new InlineKeyboardGeneralMenu().getKeyboard(message);
+            inlineKeyboardGeneralMenu.getKeyboard(message);
+            sendMessageFrom(message.getChatId(), "Меню!", message);
+
+        } else if (update.hasCallbackQuery()) {
+            CallbackQuery callbackQuery = update.getCallbackQuery();
+            String data = callbackQuery.getData();
+            String chat_id = callbackQuery.getMessage().getChat().getId().toString();
+
+            SendMessage sendMessage = new SendMessage();
+
+            String textContent;
+            InlineKeyboardGeneralMenu inlineKeyboardGeneralMenu = new InlineKeyboardGeneralMenu();
+            ReplyMarkupSubMenu replyMarkupSubMenu = new ReplyMarkupSubMenu();
+            SendLocation sendLocation = new SendLocation(chat_id,
+                    Double.parseDouble(botConfig.appProps.getProperty("location.latitude")),
+                    Double.parseDouble(botConfig.appProps.getProperty("location.longitude")));
+
+            switch (data){
+                case "course":
+                    textContent = "Information\n" + "about\n" + "course\n";
+                    break;
+                case "reviews":
+                    textContent ="Reviews!";
+                    replyMarkupSubMenu.getKeyboard(sendMessage);
+                    sendMessageFromCallback(chat_id, textContent, sendMessage);
+                    textContent = "";
+                    break;
+                case "/location":
+                    textContent = "Our location";
+                    sendLocationFromCallback(chat_id, sendLocation);
+                    break;
+                default:
+                    textContent = "Don't speak english? Very bad. F'uk up!";
+                break;
+            }
+
+            if (textContent != ""){
+                sendMessageFromCallback(chat_id, textContent);
+            }
+            inlineKeyboardGeneralMenu.getKeyboard(sendMessage);
+            sendMessageFrom(chat_id, "Главное меню", sendMessage);
+
+        }
     }
 
-    public SendMessage start(SendMessage sendMessage){
-        InlineKeyboardButton menuButton = new InlineKeyboardButton();
-        menuButton.setText("О курсе");
-        menuButton.setCallbackData("course");
-
-        InlineKeyboardButton menuButton1 = new InlineKeyboardButton();
-        menuButton1.setText("Отзывы");
-        menuButton1.setCallbackData("reviews");
-
-        InlineKeyboardButton menuButton2 = new InlineKeyboardButton();
-        menuButton2.setText("Местоположение");
-        menuButton2.setCallbackData("location");
-
-        List<InlineKeyboardButton> row = new LinkedList<>();
-        row.add(menuButton);
-        row.add(menuButton1);
-        row.add(menuButton2);
-
-        //row collection
-        List<List<InlineKeyboardButton>> rowCollection = new LinkedList<>();
-        rowCollection.add(row);
-        InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
-        inlineKeyboardMarkup.setKeyboard(rowCollection);
-
-        sendMessage.setReplyMarkup(inlineKeyboardMarkup);
-        return sendMessage;
-    }
-
-
-    private void sendMessageFrom(String chatId, String textToSend){
+    //Send Message From Bot ____________________________-------------------------------________________
+    private synchronized void sendMessageFrom(String chatId, String textToSend){
         SendMessage message = new SendMessage();
         sendMessageFrom(chatId, textToSend, message);
     }
+    private synchronized void sendMessageFromCallback(String chatId, String textToSend){
+        SendMessage message = new SendMessage();
+        sendMessageFromCallback(chatId, textToSend, message);
+    }
 
-    private void sendMessageFrom(String chatId, String textToSend, SendMessage message){
+    private synchronized void sendMessageFrom(String chatId, String textToSend, SendMessage message){
         message.setChatId(chatId);
         message.setText(textToSend);
 
@@ -112,68 +110,29 @@ public class MyBot extends TelegramLongPollingBot {
             e.printStackTrace();
         }
     }
+    private synchronized void sendLocationFromCallback(String chat_id, SendLocation sendLocation){
+        sendLocation.setChatId(chat_id);
+        try{
+            execute(sendLocation);
 
-
-
-    public void onUpdateReceived(Update update){
-
-        if (update.hasMessage() && update.getMessage().hasText()) {
-            SendMessage message = new SendMessage(); // Create a SendMessage object with mandatory fields
-            message.setChatId(update.getMessage().getChatId().toString());
-
-            String messageText = update.getMessage().getText();
-
-            switch (messageText){
-                case "/start":
-                    sendMessageFrom(message.getChatId(), "Привет!)\n" +
-                            "Просто кликай на интересующие кнопки = )");
-                    break;
-            }
-            //повторение меню
-            message = start(message);
-            sendMessageFrom(message.getChatId(), "MENU", message);
-
-        } else if (update.hasCallbackQuery()) {
-            CallbackQuery callbackQuery = update.getCallbackQuery();
-            String data = callbackQuery.getData();
-            String chat_id = callbackQuery.getMessage().getChat().getId().toString();
-            SendChatAction sendChatAction = new SendChatAction();
-            sendChatAction.setChatId(chat_id);
-            SendMessage sendMessage = new SendMessage();
-            sendMessage.setChatId(chat_id);
-
-            switch (data){
-                case "course":
-                    sendMessageFrom(chat_id, "Как устроен курс:\n" +
-                        "Теория записана в видео - можно смотреть в любое время, не онлайн стрим\n");
-                    break;
-                case "reviews": sendMessageFrom(chat_id,"Здесь будут наши отзывы!");
-                    break;
-                case "location":
-                    sendMessageFrom(chat_id,"Здесь будет локация!");
-                    break;
-                default: sendMessageFrom(chat_id,"Мы ну никак не можем распознать ваши слова..." + "\n" +
-                "Подумайте ещё раз и напишите что-то другое...");
-                break;
-            }
-
-            try {
-                sendChatAction.setAction(ActionType.TYPING);
-                execute(sendChatAction);
-                execute(sendMessage);
-            } catch (TelegramApiException e) {
-                e.printStackTrace();
-            }
-
-            sendMessage = start(sendMessage);
-            sendMessage.setText("Меню");
-            try {
-                execute(sendMessage);
-            } catch (TelegramApiException e) {
-                e.printStackTrace();
-            }
-
-
+        } catch (TelegramApiException e){
+            e.printStackTrace();
         }
     }
+
+    private synchronized void sendMessageFromCallback(String chat_id, String textToSend, SendMessage sendMessage){
+        SendChatAction sendChatAction = new SendChatAction();
+        sendChatAction.setChatId(chat_id);
+        sendChatAction.setAction(ActionType.TYPING);
+        sendMessage.setChatId(chat_id);
+        sendMessage.setText(textToSend);
+
+        try{
+            execute(sendChatAction);
+            execute(sendMessage);
+        } catch (TelegramApiException e){
+            e.printStackTrace();
+        }
+    }
+
 }
